@@ -1,7 +1,5 @@
-// var script = document.createElement('script');
-// script.src = 'jquery-2.1.1.min.js';
-// script.type = 'text/javascript';
-// document.getElementsByTagName('head')[0].appendChild(script);
+// This file is responsible for printing the google calendar events on the page
+// and sending the data to the eventPage when the user submits the data
 
 $(document).ready(function() {
 	$('#startDate').datepicker();
@@ -24,7 +22,6 @@ document.getElementById('settings').addEventListener('click', openSettings);
 
 chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
-   console.log(request);
     if (request.action == "show_events") {
     	var events = JSON.parse(request.events);
     	displayCalendar(events.items);
@@ -35,7 +32,7 @@ chrome.runtime.onMessage.addListener(
 });
 
 function openSettings() {
-  chrome.runtime.sendMessage({action: 'open_settings'}, function(response){ console.log(response); });
+  chrome.runtime.sendMessage({action: 'open_settings'});
 }
 
 function getEvents() {
@@ -55,42 +52,42 @@ function getEvents() {
   endDate = endDate.toISOString();
 
   var timeFrame = [startDate, endDate];
-  console.log(timeFrame);
-  chrome.runtime.sendMessage({action: 'get_events', timeFrame: timeFrame}, function(response){ console.log(response); });
+  chrome.runtime.sendMessage({action: 'get_events', timeFrame: timeFrame});
 }
 
-function displayCalendar(events) {
-    if (events.length > 0) {
-      $('#warning-row').addClass("hidden");
-      $('#log-time-button').removeClass("disabled");
+function displayCalendar(events, defaultTicket) {
+  if (events.length > 0) {
+    $('#warning-row').addClass("hidden");
+    $('#log-time-button').removeClass("disabled");
 
-      for (i = 0; i < events.length; i++) {
-        var event = events[i];
-        console.log(event);
-        if (event.start == undefined) {
-        	//don't do anything
-        }
-        else if (!event.start.dateTime) {
-          var startTime = event.start.date;
-          var endTime = event.end.date;
-        }
-        else {
-          var startTime = event.start.dateTime;
-          var endTime = event.end.dateTime;
-
-          var timeElapsed = getTimeElapsed(startTime, endTime);
-          event.timeElapsed = timeElapsed;
-          addRow(event, i);          
-        }
+    console.log(events);
+    for (i = 0; i < events.length; i++) {
+      var event = events[i];
+      if (event.start == undefined) {
+      	//don't do anything
       }
-    } 
-    else {
-        console.log('No upcoming events found.');
-        $('#warning-row').removeClass("hidden");
-        if ( $('#log-time-button').hasClass('disabled') == false ) {
-          $('#log-time-button').addClass('disabled');
-        }
+      else if (!event.start.dateTime) {
+        var startTime = event.start.date;
+        var endTime = event.end.date;
+      }
+      else {
+        var startTime = event.start.dateTime;
+        var endTime = event.end.dateTime;
+
+        var timeElapsed = getTimeElapsed(startTime, endTime);
+        event.timeElapsed = timeElapsed;
+        addRow(event, i);
+        console.log("i is: " + i);
+        console.log("events length is: " + events.length);          
+      }
     }
+  } 
+  else {
+      $('#warning-row').removeClass("hidden");
+      if ( $('#log-time-button').hasClass('disabled') == false ) {
+        $('#log-time-button').addClass('disabled');
+      }
+  }
 }
 
 function updateRow(rowId, status) {
@@ -106,9 +103,6 @@ function updateRow(rowId, status) {
       $('#danger-row').removeClass('hidden');
     }
   }
-
-  console.log(request.status);
-  console.log(request.rowId);
 }
 
 function addRow(event, counter) {
@@ -124,7 +118,8 @@ function addRow(event, counter) {
 
   var startCell = newRow.insertCell(1);
   var startTime = document.createTextNode(formatDate(event.start.dateTime));
-  var startTimeHiddenInput = '<input id="startTime[' + counter + ']" type="hidden" value="' + event.start.dateTime + '">';
+  var startTimeForAPI = formatTimeForAPI(event.start.dateTime);
+  var startTimeHiddenInput = '<input id="startTime[' + counter + ']" type="hidden" value="' + startTimeForAPI + '">';
   startCell.innerHTML = startTimeHiddenInput;
   startCell.appendChild(startTime);
 
@@ -143,31 +138,36 @@ function addRow(event, counter) {
   ticketCell.innerHTML = ticketMarkUp;
 
   var checkBoxCell = newRow.insertCell(5);
-  //var userAttendedMeeting = attendedMeeting(event);
-  var userAttendedMeeting = true;
-  if (userAttendedMeeting === true) {
-    var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox" checked> <label for="checkbox[' + counter + ']"></label>';
-  }
-  else {
-    var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox"> <label for="checkbox[' + counter + ']"></label>';
-  }
-  checkBoxCell.innerHTML = checkBoxMarkUp;
-}
 
-function attendedMeeting(event) {
-  console.log(event.summary);
-  var attended = false;
-  for (i = 0; i < event.attendees.length; i++) {
-    var attendee = event.attendees[i];
-    if (attendee.self == true) {
-      if (attendee.responseStatus == true) {
-        i += event.attendees.length;
-        attended = true;
+  // find out if the user attended the meeting and if they did, check the box next to the meeting
+  checkIfAttended(event);
+
+  function checkIfAttended(event) {
+    console.log(event);
+    var attended = false;
+    if (!event.attendees) {
+      attended = true;
+    }
+    else {
+      for (k = 0; k < event.attendees.length; k++) {
+        var attendee = event.attendees[k];
+        if (attendee.self == true) {
+          if (attendee.responseStatus == "accepted") {
+            k += event.attendees.length;
+            attended = true;
+          }
+        }
       }
     }
+    console.log(attended);
+    if (attended === true) {
+      var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox" checked> <label for="checkbox[' + counter + ']"></label>';
+    }
+    else {
+      var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox"> <label for="checkbox[' + counter + ']"></label>';
+    }
+    checkBoxCell.innerHTML = checkBoxMarkUp;
   }
-  console.log("Attended " + event.summary + ": " + attended);
-  return attended;
 }
 
 function getTimeElapsed(startTime, endTime) {
@@ -176,6 +176,21 @@ function getTimeElapsed(startTime, endTime) {
 
   var timeElapsedMilliseconds = endTimeMilliseconds - startTimeMilliseconds;
   var timeElapsedFormatted = getHoursMinutes(timeElapsedMilliseconds);
+
+  function getHoursMinutes(duration) {
+    var minutes = parseInt((duration/(1000*60))%60);
+    var hours = parseInt((duration/(1000*60*60))%24);
+
+    if (hours == 0) {
+      return minutes + "m";
+    }
+    else if (minutes == 0) {
+      return hours + "h";
+    }
+    else {
+      return hours + "h " + minutes + "m"; 
+    }
+  }
 
   return timeElapsedFormatted;
 }
@@ -206,50 +221,52 @@ function formatDate(date) {
   return formatDate;
 }
 
-function getHoursMinutes(duration) {
-  var minutes = parseInt((duration/(1000*60))%60);
-  var hours = parseInt((duration/(1000*60*60))%24);
-
-  if (hours == 0) {
-    return minutes + "m";
-  }
-  else if (minutes == 0) {
-    return hours + "h";
-  }
-  else {
-    return hours + "h " + minutes + "m"; 
-  }
-}
-
 function convertToSeconds(worklog) {
   var times = worklog.match(/(\d+h)?\s?(\d+m)?/);
-  console.log(times);
   var seconds = 0;
-  //for (i = 0; i < times.length; i++) {
-    var hours = 0;
-    var minutes = 0;
-    if (times[1] == undefined) {
-      minutes = times[2].split('m')[0];
-    }
-    else if (times[2] == undefined) {
-      hours = times[1].split('h')[0];
-    }
-    else {
-      hours = times[1].split('h')[0];
+  var hours = 0;
+  var minutes = 0;
 
-      minutes = times[2].split(' ')[0];
-      minutes = minutes.split('m')[0];
-    }
-    hours = parseInt(hours);
-    minutes = parseInt(minutes);
+  if (times[1] == undefined) {
+    minutes = times[2].split('m')[0];
+  }
+  else if (times[2] == undefined) {
+    hours = times[1].split('h')[0];
+  }
+  else {
+    hours = times[1].split('h')[0];
 
-    hours = hours * 3600;
-    minutes = minutes * 60;
+    minutes = times[2].split(' ')[0];
+    minutes = minutes.split('m')[0];
+  }
+  hours = parseInt(hours);
+  minutes = parseInt(minutes);
 
-    seconds += hours;
-    seconds += minutes;
-  //}
+  hours = hours * 3600;
+  minutes = minutes * 60;
+
+  seconds += hours;
+  seconds += minutes;
+
   return seconds;
+}
+
+// takes a date like '2015-11-30T10:00:00-05:00'
+// and returns       '2015-11-30T10:00:00.000-0500'
+// needed because google and jira use different formats
+function formatTimeForAPI(time) {
+  // first remove the last semicolon
+  var endOfTime = time.match(/\d\d[-\+]\d\d:\d\d/);
+  endOfTime = endOfTime[0].replace(':', '');
+  time = time.replace(/\d\d[-\+]\d\d:\d\d/, endOfTime);
+
+  // then add milliseconds
+  startOfTime = time.split(/[-\+]\d\d\d\d/)[0];
+  endOfTime   = time.split(/T\d\d:\d\d:\d\d/)[1];
+  startOfTime = startOfTime + '.000';
+
+  time = startOfTime + endOfTime;
+  return time;
 }
 
 function logTime() {
@@ -257,6 +274,7 @@ function logTime() {
     // if the button is disabled, do nothing
   }
   else {
+    $('#log-time-button').addClass('disabled');
     var worklogs = $("[id^=worklog]");
     var tickets = $("[id^=ticket");
     var startTimes = $("[id^=startTime");
@@ -275,7 +293,6 @@ function logTime() {
 
       if (isChecked == true) {
         worklog = convertToSeconds(worklog.value);
-        console.log(worklog);
         var timesheet = {
           "id": i,
           "worklog": worklog,
@@ -285,12 +302,7 @@ function logTime() {
         }
         timesheets.push(timesheet);
       }
-
-      //console.log("worklog: " + worklog.value);
-      //console.log("ticket: " + ticket.value);
-      //console.log("checkbox: " + isChecked);
     }
-    console.log(timesheets);
-    chrome.runtime.sendMessage({action: 'log_time', timesheets: timesheets}, function(response){ console.log(response); });
+    chrome.runtime.sendMessage({action: 'log_time', timesheets: timesheets});
   }
 }

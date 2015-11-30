@@ -1,11 +1,10 @@
-// chrome.runtime.onInstalled.addListener(function (object) {
-//     chrome.tabs.create({url: 'chrome://extensions/?options=' + chrome.runtime.id}, function (tab) {
-//         //open the options page on install
-//     });
-// });
+chrome.runtime.onInstalled.addListener(function (object) {
+    chrome.tabs.create({url: 'chrome://extensions/?options=' + chrome.runtime.id}, function (tab) {
+        //open the options page on install
+    });
+});
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
-    //authCalendar("get", "https://www.googleapis.com/calendar/v3/users/me/calendarList/calendarId/primary", log());
     checkForValidUrl(tab.url);
 });
 
@@ -27,17 +26,13 @@ function getCalendarEvents(token, startDate, endDate, callback) {
     xhttp.onload = function() {
         if (xhttp.status === 401 || xhttp.status === 404) {
             callback(xhttp.responseText);
-            console.log(xhttp.status);
         }
         else {
             var events = JSON.parse(xhttp.responseText);
-            console.log(events.items.length);
             callback(xhttp.responseText);
         }
     };
     xhttp.onerror = function() {
-        // Do whatever you want on error. Don't forget to invoke the
-        // callback to clean up the communication port.
         callback(xhttp.status);
     };
 
@@ -45,13 +40,11 @@ function getCalendarEvents(token, startDate, endDate, callback) {
         endDate = new Date(endDate).toISOString();
         var endParams = String('timeMax=' + endDate + '&');
         url = url.concat(endParams);
-        //xhttp.setRequestHeader('timeMax', endDate);
     }
     if (startDate) {
         startDate = new Date(startDate).toISOString();
         var startParams = String('timeMin=' + startDate + '&');
         url = url.concat(startParams);
-        //xhttp.setRequestHeader('timeMin', startDate);
     }
 
     url = url.concat('singleEvents=true&');
@@ -72,10 +65,8 @@ function sendEvents(events) {
 function logTime(timesheets) {
     function postTimeSheetData(jiraInfo) {
         for (i = 0; i < timesheets.length; i++) {
-            //writeTimesheet(timesheets[i]);
-            console.log(timesheets[i]);
+            writeTimesheet(timesheets[i], jiraInfo);
         }
-        writeTimesheet(timesheets[0], jiraInfo);
     }
 
     getJiraInfo(postTimeSheetData);
@@ -83,8 +74,6 @@ function logTime(timesheets) {
     // gets jira credentials and jira URL from chrome storage
     // kicks off a function to POST data to JIRA after credentials are received
     function getJiraInfo(callback) {
-        console.log("GETTING CRED");
-
         chrome.storage.sync.get({
             jira_user: 'unknown',
             jira_password: 'unknown',
@@ -93,7 +82,6 @@ function logTime(timesheets) {
         function(items) {
             // if any of the necessary jira info is missing, send user to options page
             if (items.jira_user == 'unknown' || items.jira_password == 'unknown' || items.jira_url == 'unknown') {
-                console.log('something is unknown');
                 return false;
                 chrome.tabs.create({url: 'chrome://extensions/?options=' + chrome.runtime.id}, function (tab) {});
             }
@@ -110,23 +98,16 @@ function logTime(timesheets) {
 
     function writeTimesheet(timesheet, jiraInfo) {
         jiraInfo = JSON.parse(jiraInfo);
-
-        console.log('writing timesheet');
-        console.log(timesheet);
-        console.log(jiraInfo);
-
         var credentials = jiraInfo.credentials;
-
-        var xhttp = new XMLHttpRequest();
-        //TO DO: EVENTUALLY, WE WANT TO STORE THE JIRA URL IN CHROME MEMORY
         var url = jiraInfo.url + '/rest/api/2/issue/' + timesheet.ticket + '/worklog';
-        console.log(url);
         
         var data = JSON.stringify({
             "timeSpentSeconds": timesheet.worklog,
             "comment": timesheet.meetingTitle,
             "started": timesheet.startTime
         });
+
+        var xhttp = new XMLHttpRequest();
 
         xhttp.onload = function() {
             if (xhttp.status === 201) {
@@ -160,6 +141,7 @@ function logTime(timesheets) {
     }
 }
 
+// handle the different types of requests that can come from content scripts
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     if (request.action == 'get_events') {
         var startDate = request.timeFrame[0];
@@ -194,38 +176,17 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                       return;
                     }
 
-                    //callback(null, this.status, this.responseText);
                     callback(access_token, startDate, endDate, sendEvents);
                   }
               });
             }
         }
-        //chrome.windows.create({'url': 'google-calendar.html', 'type': 'popup'}, function(window) {});
     }
     else if (request.action == 'open_popup') {
         chrome.tabs.create({'url': 'google-calendar.html'}, function(window) {});
     }
     else if (request.action == 'open_settings') {
         chrome.tabs.create({'url': 'options.html'}, function(window) {});
-    }
-    else if (request.action == 'get_jira_info') {
-        // Use default value 'unknown'
-        chrome.storage.sync.get({
-            jira_user: 'unknown',
-            jira_password: 'unknown',
-            jira_url: 'unknown',
-            jira_project: 'unknown'
-        }, function(items) {
-            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                var jiraInfo = JSON.stringify({
-                    "user": items.jira_user,
-                    "password": items.jira_password,
-                    "project": items.jira_project,
-                    "url": items.jira_url 
-                });
-                chrome.tabs.sendMessage(tabs[0].id, {action: "create_ticket", payload: jiraInfo});
-            });
-        });
     }
     else if (request.action == "log_time") {
         logTime(request.timesheets);
