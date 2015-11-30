@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>JIRA Settings</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
+	<style>
+		body {
+			background: #eee !important;	
+		}
+		.wrapper {	
+			margin-bottom: 80px;
+		}
+		.vcenter {
+		    display: inline-block;
+		    vertical-align: middle;
+		    float: none;
+		}
+		hr {
+			display: block;
+			height: 1px;
+			border: 0;
+			border-top: 1px solid #ccc;
+			margin: 1em 0;
+			padding: 0; 
+		}
+	</style>
+</head>
+<body>
+	<div class="wrapper">
+	  	<div class="container">
+		  	<div class="page-header">
+			  <h1 class="text-center">JIRA Settings</h1>
+			</div>
+	  		<div class="container">
+		  		<div class="row">
+				  	<div class="col-sm-12 col-md-6 col-md-offset-3 text-center">
+				  		<div id="successMsg" class="alert alert-success hidden">
+			  				<strong><i class="fa fa-check"></i> Success!</strong> Settings have been saved.
+						</div>
+				  		<div id="warningMsg" class="alert alert-warning hidden">
+			  				<strong><i class="fa fa-exclamation-triangle"></i> Warning!</strong> Could not find a ticket with that key
+						</div>
+				  		<div id="errorMsg" class="alert alert-danger hidden">
+			  				<strong><i class="fa fa-exclamation-triangle"></i> Error!</strong> JIRA information is invalid
+						</div>
+					</div>
+				  	<div class="col-sm-12 col-md-6 col-md-offset-3">
+						<form class="form-horizontal">
+							<div class="form-group">
+								<label for="username" class="col-sm-3 control-label"><i class="fa fa-user"></i> Username</label>
+								<div class="col-sm-9">
+									<input id="username" type="text" class="form-control" placeholder="not your email">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="password" class="col-sm-3 control-label"><i class="fa fa-key"></i> Password</label>
+								<div class="col-sm-9">
+									<input id="password" type="password" class="form-control" placeholder="password">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="project" class="col-sm-3 control-label"><i class="fa fa-ticket"></i> Default Ticket</label>
+								<div class="col-sm-9">
+									<input id="ticket" type="text" class="form-control" placeholder="default for logging time to meetings">
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="url" class="col-sm-3 control-label"><i class="fa fa-link"></i> URL</label>
+								<div class="col-sm-9">
+									<input id="url" type="text" class="form-control" placeholder="i.e. https://thrillistmediagroup.atlassian.net">
+								</div>
+							</div>
+							<hr>
+							<div class="pull-left vcenter">
+								<a href="mailto:michaelgarysolomon@gmail.com?subject=Chrome Extension: Google Calendar Timesheets"><i class="fa fa-pencil"></i> Leave Feedback</a>
+							</div>
+							<div class="form-group pull-right vcenter">
+								<div class="col-xs-6">
+									<button type="reset" class="btn btn-default"><i class="fa fa-refresh"></i> Reset</button>
+								</div>
+								<div class="col-xs-6">
+									<button id="save" type="button" class="btn btn-primary"><i class="fa fa-floppy-o"></i> Save</button>
+								</div>
+							</div>
+						</form>
+					</div>
+				</div>
+			</div>
+	  	</div>
+	</div>
+  <script src="options.js"></script>
+</body>
+</html>
