@@ -56,10 +56,26 @@ function getCalendarEvents(token, startDate, endDate, callback) {
     return true; // prevents the callback from being called too early on return
 }
 
-function sendEvents(events) {
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        chrome.tabs.sendMessage(tabs[0].id, {action: "show_events", events: events});
+function sendEventsAndDefaultTicket(events) {
+    chrome.storage.sync.get({
+        jira_ticket: 'unknown'
+    },
+    function(items) {
+        if (items.jira_ticket == 'unknown') {
+            return false;
+            chrome.tabs.create({url: 'chrome://extensions/?options=' + chrome.runtime.id}, function (tab) {});
+        }
+        else {
+            var defaultTicket = items.jira_ticket;
+            sendEventsAndDefaultTicket(defaultTicket);
+        }
     });
+
+    function sendEventsAndDefaultTicket(defaultTicket) {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, {action: "show_events", events: events, defaultTicket: defaultTicket});
+        });
+    }
 }
 
 function logTime(timesheets) {
@@ -176,7 +192,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
                       return;
                     }
 
-                    callback(access_token, startDate, endDate, sendEvents);
+                    callback(access_token, startDate, endDate, sendEventsAndDefaultTicket);
                   }
               });
             }

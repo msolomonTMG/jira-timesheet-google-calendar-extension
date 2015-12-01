@@ -14,6 +14,23 @@ $(document).ready(function() {
   $('#startDate').val(defaultMonth + '/' + defaultDay + '/' + defaultYear);
   $('#endDate').val(defaultMonth + '/' + defaultDay + '/' + defaultYear);
 
+  // if the start date changes, make sure the end date is in the future or same day as start
+  // if the end date changes, make sure the start date is in the past or same day as end
+  $('#startDate').change(function() {
+    var startDate = $('#startDate').val();
+    var endDate   = $('#endDate').val();
+    if ( startDate > endDate) {
+      $('#endDate').val(startDate);
+    }
+  });
+  $('#endDate').change(function() {
+    var startDate = $('#startDate').val();
+    var endDate   = $('#endDate').val();
+    if ( endDate < startDate) {
+      $('#startDate').val(endDate);
+    }
+  });
+
 });
 
 document.getElementById('authorize-button').addEventListener('click', getEvents);
@@ -24,7 +41,7 @@ chrome.runtime.onMessage.addListener(
   function(request, sender, sendResponse) {
     if (request.action == "show_events") {
     	var events = JSON.parse(request.events);
-    	displayCalendar(events.items);
+    	displayCalendar(events.items, request.defaultTicket);
     }
     else if (request.action == "update_row") {
       updateRow(request.rowId, request.status);
@@ -60,7 +77,6 @@ function displayCalendar(events, defaultTicket) {
     $('#warning-row').addClass("hidden");
     $('#log-time-button').removeClass("disabled");
 
-    console.log(events);
     for (i = 0; i < events.length; i++) {
       var event = events[i];
       if (event.start == undefined) {
@@ -76,9 +92,7 @@ function displayCalendar(events, defaultTicket) {
 
         var timeElapsed = getTimeElapsed(startTime, endTime);
         event.timeElapsed = timeElapsed;
-        addRow(event, i);
-        console.log("i is: " + i);
-        console.log("events length is: " + events.length);          
+        addRow(event, i, defaultTicket);     
       }
     }
   } 
@@ -105,7 +119,7 @@ function updateRow(rowId, status) {
   }
 }
 
-function addRow(event, counter) {
+function addRow(event, counter, defaultTicket) {
   var tableBody = document.getElementById('timesheet-table').getElementsByTagName('tbody')[0];
   var newRow = tableBody.insertRow(tableBody.rows.length);
   newRow.id = 'row[' + counter + ']';
@@ -132,18 +146,44 @@ function addRow(event, counter) {
   timeCell.innerHTML = timeMarkUp;
 
   var ticketCell = newRow.insertCell(4);
-  // TO DO: SAVE DEFAULT TICKET IN CHROME MEMORY
-  var defaultTicket = "TR-264";
-  var ticketMarkUp = '<input id="ticket[' + counter + ']" class="form-control" type="text" value="'+ defaultTicket +'"">';
-  ticketCell.innerHTML = ticketMarkUp;
+  checkEventForTicket(event);
 
   var checkBoxCell = newRow.insertCell(5);
-
-  // find out if the user attended the meeting and if they did, check the box next to the meeting
+  
   checkIfAttended(event);
 
+  // find out if the description or summary of the event contains a ticket number
+  // if it does, use that instead of the default ticket. event title trumps event description
+  function checkEventForTicket(event) {
+    var ticket       = '';
+    var ticketMarkUp = '';
+
+    if (event.description) {
+      // check the description and the meeting title for a ticket
+      if (event.description.match(/([A-Za-z]+-[0-9]+)/)) {
+        var ticketInDescription = event.description.match(/([A-Za-z]+-[0-9]+)/)[0];
+        ticket = ticketInDescription;
+      }
+      if (event.summary.match(/([A-Za-z]+-[0-9]+)/)) {
+        var ticketInTitle = event.summary.match(/([A-Za-z]+-[0-9]+)/)[0];
+        ticket = ticketInTitle;
+      }
+      // if the event had a description but no ticket was found, set the ticket to the default
+      else if (!ticketInDescription && !ticketInTitle) {
+        ticket = defaultTicket;
+      }
+    }
+    // if the event has no description (or no title), set the ticket to the default
+    else {
+      ticket = defaultTicket;
+    }
+
+    ticketMarkUp = '<input id="ticket[' + counter + ']" class="form-control" type="text" value="'+ ticket +'"">';
+    ticketCell.innerHTML = ticketMarkUp;
+  }
+
+  // find out if the user attended the meeting and if they did, check the box next to the meeting
   function checkIfAttended(event) {
-    console.log(event);
     var attended = false;
     if (!event.attendees) {
       attended = true;
@@ -159,7 +199,6 @@ function addRow(event, counter) {
         }
       }
     }
-    console.log(attended);
     if (attended === true) {
       var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox" checked> <label for="checkbox[' + counter + ']"></label>';
     }
