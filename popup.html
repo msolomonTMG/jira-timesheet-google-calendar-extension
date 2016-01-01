@@ -1,0 +1,143 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+  <head>
+    <title>Rooms</title>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <style>
+      body {
+        font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+        font-size: 100%;
+      }
+      .vcenter {
+        display: inline-block;
+        vertical-align: middle;
+        float: none;
+      }
+      #wrapper {
+        width: 700px;
+      }
+      #loading-wrapper {
+        height: 250px;
+        margin-top: 150px;
+        margin-left: 350px;
+      }
+      #authorize-wrapper {
+        height: 250px;
+        margin-top: 150px;
+        margin-left: 275px;
+      }
+      #status {
+        /* avoid an excessively wide status text */
+        white-space: pre;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        max-width: 400px;
+      }
+      .btn-google {
+        background-color: #DC4E41;
+        color: #FFFFFF;
+      }
+      .btn-google:hover {
+        color: #FFFFFF;
+      }
+      .btn-google:active {
+        color: #FFFFFF;
+      }
+      .btn-google:visited {
+        color: #FFFFFF;
+      }
+      input[type="checkbox"] {
+          display: none;
+      }
+      label:before {
+        font-family: 'FontAwesome';
+        width: 1.25em;
+        display: inline-block;
+      }
+      input[type="checkbox"] + label:before {
+        content: "\f204"; /* toggle-off */
+        cursor: pointer;
+      }
+      input[type="checkbox"]:checked + label:before {
+        content: "\f205"; /* toggle-on */
+        cursor: pointer;
+      }
+      .fade {
+        -webkit-mask-image: -webkit-gradient(linear, left 90%, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)));
+      }
+      small {
+        color: #000 !important;
+        padding-top: 7px;
+        font-size: 50% !important;
+      }
+      /* Allow tooltips to have line breaks */
+      .tooltip-inner {
+        white-space:pre-wrap;
+      }
+      /* Left align tooltip text */
+     .tooltip > p {
+       text-align:left;
+     }
+    </style>
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
+     -->
+    <script src="jquery-2.1.1.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <!-- <script src="popup.js"></script> -->
+  </head>
+  <body>
+    <div id="wrapper">
+      <div id="authorize-wrapper" style="display: none;">
+        <div id="authorize-div">
+          <!--Button for the user to click to initiate auth sequence -->
+          <button id="authorize-button" class="btn btn-google">
+            <i class="fa fa-google"></i> Login with Google
+          </button>
+        </div>
+      </div>
+      <div id="loading-wrapper">
+        <span id="loading-icon"><i class="fa fa-refresh fa-spin fa-3x"></i></span>
+      </div>
+      <div class="container">
+        <div class="page-header">
+          <h3>Thrillist Rooms <small class="pull-right">
+            <input id="4floor" class="form-control floor-selector" type="checkbox" checked><label for="4floor"> 4th</label>
+            <input id="5floor" class="form-control floor-selector" type="checkbox" checked><label for="5floor"> 5th</label>
+            <input id="6floor" class="form-control floor-selector" type="checkbox" checked><label for="6floor"> 6th</label>
+          </small></h3>
+        </div>
+        <div class="row center pull-right">
+        </div>
+        <table class="table table-hover" id="rooms-table">
+          <thead>
+            <tr>
+              <th>Room</th>
+              <th>Current Meeting</th>
+              <th class='text-center'>Book Now</th>
+              <th class='text-center'>Book Later</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr> 
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+  <script src="popup.js"></script>
+  <script src="https://apis.google.com/js/client.js?onload=checkAuth"></script>
+</html>
+
