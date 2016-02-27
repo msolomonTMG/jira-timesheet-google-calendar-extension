@@ -1,7 +1,26 @@
-chrome.runtime.onInstalled.addListener(function (object) {
-    chrome.tabs.create({url: 'chrome://extensions/?options=' + chrome.runtime.id}, function (tab) {
-        //open the options page on install
-    });
+chrome.runtime.onInstalled.addListener(function (onInstalled) {
+    if (onInstalled.reason === 'install') {
+        // Check if we have the data we need. If not, prompt for settings data
+        chrome.storage.sync.get({
+            jira_user: 'unknown',
+            jira_password: 'unknown',
+            jira_url: 'unknown'
+        },
+        function(items) {
+            var missingItems = false;
+            for (k = 0; k < items.length; k++) {
+                if (items[k] == 'unknown') {
+                    missingItems = true;
+                    k += items.length;
+                }
+            }
+            if (missingItems) {
+                chrome.tabs.create({url: 'chrome://extensions/?options=' + chrome.runtime.id}, function (tab) {
+                    //open the options page on install
+                });
+            }
+        });
+    }
 });
 
 chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab){
@@ -94,7 +113,7 @@ function logTime(timesheets) {
             jira_user: 'unknown',
             jira_password: 'unknown',
             jira_url: 'unknown'
-        }, 
+        },
         function(items) {
             // if any of the necessary jira info is missing, send user to options page
             if (items.jira_user == 'unknown' || items.jira_password == 'unknown' || items.jira_url == 'unknown') {
@@ -105,7 +124,7 @@ function logTime(timesheets) {
                 var credentials = btoa(items.jira_user + ":" + items.jira_password);
                 var jiraInfo = JSON.stringify({
                     "credentials": credentials,
-                    "url": items.jira_url 
+                    "url": items.jira_url
                 });
                 callback(jiraInfo, timesheets);
             }
@@ -116,7 +135,7 @@ function logTime(timesheets) {
         jiraInfo = JSON.parse(jiraInfo);
         var credentials = jiraInfo.credentials;
         var url = jiraInfo.url + '/rest/api/2/issue/' + timesheet.ticket + '/worklog';
-        
+
         var data = JSON.stringify({
             "timeSpentSeconds": timesheet.worklog,
             "comment": timesheet.meetingTitle,
@@ -167,7 +186,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
         function authenticatedXhr(method, url, callback) {
             var retry = true;
             getTokenAndXhr();
-            
+
             function getTokenAndXhr() {
               chrome.identity.getAuthToken({ 'interactive': true }, function (access_token) {
                   if (chrome.runtime.lastError) {
@@ -209,7 +228,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     }
     else if (request.action == "xhttp") {
         var xhttp = new XMLHttpRequest();
-        
+
         var method = request.method ? request.method.toUpperCase() : 'GET';
 
         if (method == 'POST') {
@@ -221,7 +240,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
             if (xhttp.response) {
                 var errors = JSON.parse(xhttp.response);
             }
-            
+
             if (xhttp.getResponseHeader('x-seraph-loginreason') == 'OUT, AUTHENTICATED_FAILED') {
                 sendResponse({"errorMessages":["Invalid Credentials"], "errors":{}});
             }
