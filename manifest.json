@@ -1,42 +1,27 @@
 {
-  "manifest_version": 2,
-  "name": "Google Calendar Timesheets",
-  "description": "Log time in JIRA based on your Google calendar.",
-  "version": "1.4.3",
-  "permissions": [
-    "identity", "storage", "tabs", "https://*.atlassian.net/secure/Tempo*", "https://*.googleapis.com/*"
-  ],
-  "content_scripts": [
-    {
-      "matches": ["https://*.atlassian.net/secure/Tempo*"],
-      "js": ["jquery-2.1.1.min.js","chrome_ext.js"]
-    }
-  ],
-  "icons": {
-    "16": "icon-128.png",
-    "48": "icon-128.png",
-    "128": "icon-128.png"
-  },
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAky+bRos0J5FlJFQORuJsk/ht7aJOgXs9JmXhU4L55hyCGWdIC+IMDGBWCaK/NOqNiqnOpZUor7IeYkSTrsvh+R+yKFovK62Y9AOawLjXs6yR1N99+bsHtH3YPjfCtBi09uXOhzPJmaHQ7KmMugQlq4qzTzoAfmFIHAZErJ9MY0Ccvu6p8JYgA7D/Chr2taLjxCX5WVCLZzOxDiwAc7bzA328r7BD81caHTEYIDfOxZTJcfHMxUQHoOfoSXHGwujyAb0ObAjoI2icSN1Cd5O6FX3FqvI/MsnBjarbCTaLeOkF+bSN5xGiVcE9D4SN/+iDGYUG0L44D0BuMgL/wY3X4QIDAQAB",
-  "icons": {
-    "16": "icons/icon-16.png",
-    "48": "icons/icon-48.png",
-    "128": "icons/icon-128.png"
-  },
-  "browser_action": {
-    "default_icon": "icons/icon.png",
-    "default_popup": "popup.html"
-  },
-  "content_security_policy": "script-src 'self' 'unsafe-eval' https://apis.google.com; object-src 'self'",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "identity",
-    "https://ajax.googleapis.com/"
-  ],
-  "options_page": "options.html",
-  "background": {
-    "scripts": ["eventPage.js"],
-    "persistent": true
-  }
+   "background": {
+      "persistent": true,
+      "scripts": [ "eventPage.js" ]
+   },
+   "content_scripts": [ {
+      "js": [ "jquery-2.1.1.min.js", "chrome_ext.js" ],
+      "matches": [ "http://*/secure/Tempo*", "https://*/secure/Tempo*"  ]
+   } ],
+   "description": "Log time in JIRA based on your Google calendar.",
+   "icons": {
+      "128": "icon-128.png",
+      "16": "icon-128.png",
+      "48": "icon-128.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAky+bRos0J5FlJFQORuJsk/ht7aJOgXs9JmXhU4L55hyCGWdIC+IMDGBWCaK/NOqNiqnOpZUor7IeYkSTrsvh+R+yKFovK62Y9AOawLjXs6yR1N99+bsHtH3YPjfCtBi09uXOhzPJmaHQ7KmMugQlq4qzTzoAfmFIHAZErJ9MY0Ccvu6p8JYgA7D/Chr2taLjxCX5WVCLZzOxDiwAc7bzA328r7BD81caHTEYIDfOxZTJcfHMxUQHoOfoSXHGwujyAb0ObAjoI2icSN1Cd5O6FX3FqvI/MsnBjarbCTaLeOkF+bSN5xGiVcE9D4SN/+iDGYUG0L44D0BuMgL/wY3X4QIDAQAB",
+   "manifest_version": 2,
+   "name": "Google Calendar Timesheets",
+   "oauth2": {
+      "client_id": "577904776419-s51hn7v7abvnvmt9lamd3uri2cf6kq3n.apps.googleusercontent.com",
+      "scopes": [ "https://www.googleapis.com/auth/calendar.readonly" ]
+   },
+   "options_page": "options.html",
+   "permissions": [ "identity", "storage", "tabs", "http://*/secure/Tempo*", "https://*/secure/Tempo*", "https://*.googleapis.com/*" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "1.5.0"
 }
