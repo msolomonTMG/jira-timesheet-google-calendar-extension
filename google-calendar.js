@@ -179,10 +179,37 @@ function addRow(event, counter, defaultTicket) {
     else {
       ticket = defaultTicket;
     }
-
-    ticketMarkUp = '<input id="ticket[' + counter + ']" class="form-control" type="text" value="'+ ticket +'"">';
-    ticketCell.innerHTML = ticketMarkUp;
+		ticketMarkup = '<div class="input-group"><input id="ticket[' + counter + ']" class="form-control" type="text" value="'+ ticket +'""></div>';
+		$(ticketCell).append(ticketMarkup);
+		$(ticketCell).on('click', function() {
+			// do nothing if search is already enabled
+			if( $(this).find('.ticket-search').length > 0) {
+				return
+			} else {
+				// add search icon
+				$($(this).children()[0]).append('<div class="input-group-addon ticket-search"><i class="fa fa-search"></i></div>');
+				// enable search
+				$(this).find(':input').on('change paste keyup', function() {
+					var query = $(this).val();
+					console.log(query);
+					searchTickets(query);
+				})
+			}
+		});
+		// remove search on focus out
+		$(ticketCell).focusout(function() {
+			$(this).find('.ticket-search').remove();
+		})
   }
+
+	function searchTickets(query) {
+		chrome.runtime.sendMessage({
+			action: 'search_tickets',
+			data: {
+				query: query
+			}
+		});
+	}
 
   // find out if the user attended the meeting and if they did, check the box next to the meeting
   function checkIfAttended(event) {

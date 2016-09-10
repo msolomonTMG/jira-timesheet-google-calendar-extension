@@ -1,5 +1,11 @@
 'use strict';
 
+var jiraInfo;
+var getJiraData = getJira();
+getJiraData.then(function(data) {
+  jiraInfo = JSON.parse(data);
+});
+
 chrome.runtime.onInstalled.addListener(function (onInstalled) {
   if (onInstalled.reason === 'install') {
     // Check if we have the data we need. If not, prompt for settings data
@@ -96,6 +102,58 @@ function sendEventsAndDefaultTicket(events) {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       chrome.tabs.sendMessage(tabs[0].id, {action: "show_events", events: events, defaultTicket: defaultTicket});
     });
+  }
+}
+
+function searchTickets(query) {
+  //var getJiraData = getJira();
+  console.log('search tickets jira info', jiraInfo);
+  console.log('jira info url', jiraInfo.url);
+  var url = jiraInfo.url + '/rest/api/2/issue/picker?query=' + query;
+  // xhttp.setRequestHeader('Content-Type', 'application/json');
+  // xhttp.setRequestHeader("X-Atlassian-Token", "nocheck");
+  // xhttp.setRequestHeader('Authorization', 'Basic ' + credentials);
+  $.get(url, function(data) {
+    console.log(data);
+  });
+}
+
+function getJira() {
+  return new Promise(function(resolve, reject) {
+    chrome.storage.sync.get({
+      jira_user: 'unknown',
+      jira_password: 'unknown',
+      jira_url: 'unknown'
+    }, function(items) {
+      if (missingValues(items)) {
+        reject(items);
+      } else {
+        var credentials = btoa(items.jira_user + ":" + items.jira_password);
+        var jiraInfo = JSON.stringify({
+          "credentials": credentials,
+          "url": items.jira_url
+        });
+        resolve(jiraInfo);
+      }
+    });
+  });
+
+  function missingValues(obj) {
+    Object.values = function(object) {
+      var values = [];
+      for(var property in object) {
+        values.push(object[property]);
+      }
+      return values;
+    }
+
+    var values = Object.values(obj);
+    values.forEach(function(value) {
+      if (value === 'unknown') {
+        return true;
+      }
+    })
+    return false;
   }
 }
 
@@ -281,5 +339,10 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     }
     xhttp.send(request.data);
     return true; // prevents the callback from being called too early on return
+  }
+  else if (request.action == 'search_tickets') {
+    var query = request.data.query;
+    console.log(query);
+    searchTickets(query);
   }
 });
