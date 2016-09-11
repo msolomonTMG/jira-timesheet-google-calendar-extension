@@ -1,10 +1,6 @@
 'use strict';
 
 var jiraInfo;
-var getJiraData = getJira();
-getJiraData.then(function(data) {
-  jiraInfo = JSON.parse(data);
-});
 
 chrome.runtime.onInstalled.addListener(function (onInstalled) {
   if (onInstalled.reason === 'install') {
@@ -106,15 +102,19 @@ function sendEventsAndDefaultTicket(events) {
 }
 
 function searchTickets(query) {
-  //var getJiraData = getJira();
-  console.log('search tickets jira info', jiraInfo);
-  console.log('jira info url', jiraInfo.url);
   var url = jiraInfo.url + '/rest/api/2/issue/picker?query=' + query;
-  // xhttp.setRequestHeader('Content-Type', 'application/json');
-  // xhttp.setRequestHeader("X-Atlassian-Token", "nocheck");
-  // xhttp.setRequestHeader('Authorization', 'Basic ' + credentials);
   $.get(url, function(data) {
-    console.log(data);
+    var results = data.sections[0].issues;
+    console.log(results);
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id,
+        {
+          action: "search_results",
+          data: {
+            results: results
+          }
+        });
+    });
   });
 }
 
@@ -123,7 +123,8 @@ function getJira() {
     chrome.storage.sync.get({
       jira_user: 'unknown',
       jira_password: 'unknown',
-      jira_url: 'unknown'
+      jira_url: 'unknown',
+      jira_ticket: 'unknown'
     }, function(items) {
       if (missingValues(items)) {
         reject(items);
@@ -131,7 +132,8 @@ function getJira() {
         var credentials = btoa(items.jira_user + ":" + items.jira_password);
         var jiraInfo = JSON.stringify({
           "credentials": credentials,
-          "url": items.jira_url
+          "url": items.jira_url,
+          "ticket": items.jira_ticket
         });
         resolve(jiraInfo);
       }
@@ -342,7 +344,25 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   }
   else if (request.action == 'search_tickets') {
     var query = request.data.query;
-    console.log(query);
     searchTickets(query);
+  }
+  else if (request.action == 'get_options') {
+    var getJiraData = getJira();
+
+    getJiraData.then(function(data) {
+      // store this data back here so that we have it
+      jiraInfo = JSON.parse(data);
+      // send the data to the front end
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id,
+          {
+            action: "send_options",
+            data: {
+              options: jiraInfo
+            }
+          });
+      });
+
+    });
   }
 });

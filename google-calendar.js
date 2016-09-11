@@ -1,7 +1,11 @@
 // This file is responsible for printing the google calendar events on the page
 // and sending the data to the eventPage when the user submits the data
+var userOptions;
 
 $(document).ready(function() {
+	// get user options
+	chrome.runtime.sendMessage({action: 'get_options'});
+
 	$('#startDate').datepicker();
 	$('#endDate').datepicker();
 
@@ -46,6 +50,13 @@ chrome.runtime.onMessage.addListener(
     else if (request.action == "update_row") {
       updateRow(request.rowId, request.status);
     }
+		else if (request.action == 'search_results') {
+			displaySearchResults(request.data.results);
+		}
+		else if (request.action == 'send_options') {
+			userOptions = request.data.options;
+			console.log(userOptions);
+		}
 });
 
 function openSettings() {
@@ -179,26 +190,29 @@ function addRow(event, counter, defaultTicket) {
     else {
       ticket = defaultTicket;
     }
-		ticketMarkup = '<div class="input-group"><input id="ticket[' + counter + ']" class="form-control" type="text" value="'+ ticket +'""></div>';
+		ticketMarkup = '<div class="input-group"><input id="ticket[' + counter + ']" class="form-control typeahead" type="text" value="'+ ticket +'" autocomplete="off" "></div>';
+
 		$(ticketCell).append(ticketMarkup);
 		$(ticketCell).on('click', function() {
 			// do nothing if search is already enabled
-			if( $(this).find('.ticket-search').length > 0) {
+			if( $(this).find('#ticket-search').length > 0) {
 				return
 			} else {
 				// add search icon
-				$($(this).children()[0]).append('<div class="input-group-addon ticket-search"><i class="fa fa-search"></i></div>');
-				// enable search
+				$($(this).children()[0]).append('<div class="input-group-addon ticket-search-icon"><i class="fa fa-search"></i></div>');
+				// this is now the ticket search element
+				$(this).find(':input').attr('id', 'ticket-search');
+				// liten for search terms
 				$(this).find(':input').on('change paste keyup', function() {
 					var query = $(this).val();
-					console.log(query);
 					searchTickets(query);
 				})
 			}
 		});
-		// remove search on focus out
+		// destroy the inited search on focus out
 		$(ticketCell).focusout(function() {
-			$(this).find('.ticket-search').remove();
+			$(this).find('.ticket-search-icon').remove();
+			$('#ticket-search').removeAttr('id');
 		})
   }
 
@@ -236,6 +250,51 @@ function addRow(event, counter, defaultTicket) {
     }
     checkBoxCell.innerHTML = checkBoxMarkUp;
   }
+}
+
+function displaySearchResults(results) {
+	var options = [];
+	results.forEach(function(result) {
+		//var resultOption = result.key + ' ' + result.summary;
+		var resultIconURL = userOptions.url + result.img;
+		var option = {
+			label: result.key + ' ' + result.summary,
+			value: result.key,
+			icon: resultIconURL
+		}
+		options.push(option);
+	});
+
+	if (options.length === 0) {
+		console.log('this is empty');
+		var noResults = {
+			label: 'No Results',
+			value: userOptions.ticket,
+			icon: '/images/warning.png'
+		}
+		options.push(noResults);
+	}
+
+	console.log(options);
+
+	// $( "#ticket-search" ).autocomplete({
+	// 	html: true,
+	// 	source: options
+	// });
+
+
+  $( "#ticket-search" ).autocomplete({
+    minLength: 0,
+    source: options,
+		html: true
+  })
+  .autocomplete( "instance" )._renderItem = function( ul, item ) {
+    return $( "<li>" )
+      .append( '<div><img src="' + item.icon + '"> ' + item.label + '</div>' )
+      .appendTo( ul );
+  };
+
+	$('#ticket-search').autocomplete( "search", "" );
 }
 
 function getTimeElapsed(startTime, endTime) {

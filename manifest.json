@@ -4,7 +4,7 @@
       "scripts": [ "jquery-2.1.1.min.js", "eventPage.js" ]
    },
    "content_scripts": [ {
-      "js": [ "jquery-2.1.1.min.js", "chrome_ext.js" ],
+      "js": [ "jquery-2.1.1.min.js", "chrome_ext.js", "jquery.ui.autocomplete.html.js" ],
       "matches": [ "http://*/secure/Tempo*", "https://*/secure/Tempo*"  ]
    } ],
    "description": "Log time in JIRA based on your Google calendar.",
