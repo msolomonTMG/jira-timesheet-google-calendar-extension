@@ -1,4 +1,5 @@
 Edit: This needs an update now that Tempo has recently upgraded
+as a workaround, go directly to the chrome extension's time logging page: chrome-extension://hhokjfockalnaabnhaaojdjgjodnceom/google-calendar.html
 
 Turn google meetings into JIRA worklogs
 ===========
