@@ -22,6 +22,9 @@ function createButton() {
     if (document.getElementsByClassName('aui-page-header-actions')[0]) {
       var buttonList = document.getElementsByClassName('aui-page-header-actions')[0].firstChild.nextElementSibling;
     }
+    else if (document.getElementsByClassName('aui-page-header-actions ')[0]) {
+      var buttonList = document.getElementsByClassName('aui-page-header-actions ')[0].firstChild.nextElementSibling;
+    }
     else {
       var buttonList = $('._header__view_navigation___1v2v0').children().eq(1);
     }
