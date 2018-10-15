@@ -23,5 +23,5 @@
    "options_page": "options.html",
    "permissions": [ "identity", "storage", "tabs", "http://*/secure/Tempo*", "https://*/secure/Tempo*", "https://*.googleapis.com/*" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.7.0"
+   "version": "1.7.1"
 }
