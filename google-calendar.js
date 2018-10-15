@@ -152,7 +152,7 @@ function addRow(event, counter, defaultTicket) {
 
   var checkBoxCell = newRow.insertCell(5);
 
-  checkIfAttended(event);
+  shouldLog(event);
 
   // find out if the description or summary of the event contains a ticket number
   // if it does, use that instead of the default ticket. event title trumps event description
@@ -183,9 +183,25 @@ function addRow(event, counter, defaultTicket) {
     ticketMarkUp = '<input id="ticket[' + counter + ']" class="form-control" type="text" value="'+ ticket +'"">';
     ticketCell.innerHTML = ticketMarkUp;
   }
+  
+  // check if log is enabled and user attended the meeting and if they did, check the box next to the meeting
+  function shouldLog(event) {
+    if (checkIfLogEnabled(event) && hasAttended(event)) {
+      var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox" checked> <label for="checkbox[' + counter + ']"></label>';
+    }
+    else {
+      var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox"> <label for="checkbox[' + counter + ']"></label>';
+    }
+    checkBoxCell.innerHTML = checkBoxMarkUp;
+  }
+  
+  //check if this meeting has a "NO_JIRA_LOG" (case insensitive) tag, determining that this meeting should not be logged by default
+  function checkIfLogEnabled(event) {
+    return !(event.description && event.description.match(/[Nn][Oo]_[Jj][Ii][Rr][Aa]_[Ll][Oo][Gg]/)) && !event.summary.match(/[Nn][Oo]_[Jj][Ii][Rr][Aa]_[Ll][Oo][Gg]/);
+  }
 
-  // find out if the user attended the meeting and if they did, check the box next to the meeting
-  function checkIfAttended(event) {
+  // find out if the user attended the meeting
+  function hasAttended(event) {
     var attended = false;
     if (!event.attendees) {
       attended = true;
@@ -201,13 +217,7 @@ function addRow(event, counter, defaultTicket) {
         }
       }
     }
-    if (attended === true) {
-      var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox" checked> <label for="checkbox[' + counter + ']"></label>';
-    }
-    else {
-      var checkBoxMarkUp = '<input id="checkbox[' + counter + ']" type="checkbox"> <label for="checkbox[' + counter + ']"></label>';
-    }
-    checkBoxCell.innerHTML = checkBoxMarkUp;
+    return attended;
   }
 }
 
