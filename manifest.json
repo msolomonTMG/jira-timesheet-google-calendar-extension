@@ -5,7 +5,7 @@
    },
    "content_scripts": [ {
       "js": [ "jquery-2.1.1.min.js", "chrome_ext.js" ],
-      "matches": [ "http://*/secure/Tempo*", "https://*/secure/Tempo*"  ]
+      "matches": [ "http://*/*is.origo.jira.tempo-plugin*", "https://*/*is.origo.jira.tempo-plugin*"  ]
    } ],
    "description": "Log time in JIRA based on your Google calendar.",
    "icons": {
@@ -23,5 +23,5 @@
    "options_page": "options.html",
    "permissions": [ "identity", "storage", "tabs", "http://*/secure/Tempo*", "https://*/secure/Tempo*", "https://*.googleapis.com/*" ],
    "update_url": "https://clients2.google.com/service/update2/crx",
-   "version": "1.5.0"
+   "version": "1.7.0"
 }

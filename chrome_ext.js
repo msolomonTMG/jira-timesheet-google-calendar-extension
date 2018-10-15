@@ -17,16 +17,10 @@ function createButton() {
     $(newButton).attr("aria-pressed", "false");
     $(newButton).attr("href", "#");
     $(newButton).attr("id", "google-calendar-button");
+    $(newButton).css("margin-left", "90%")
     newButton.addEventListener('click', openPopUp);
-
-    if (document.getElementsByClassName('aui-page-header-actions')[0]) {
-      var buttonList = document.getElementsByClassName('aui-page-header-actions')[0].firstChild.nextElementSibling;
-    }
-    else {
-      var buttonList = $('._header__view_navigation___1v2v0').children().eq(1);
-    }
-
-    $(buttonList).prepend(newButton);
+    
+    $('#content').prepend(newButton)
   }
 }
 function openPopUp() {
