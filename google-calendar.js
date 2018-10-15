@@ -201,7 +201,7 @@ function addRow(event, counter, defaultTicket) {
   }
 
   // find out if the user attended the meeting
-  function checkIfAttended(event) {
+  function hasAttended(event) {
     var attended = false;
     if (!event.attendees) {
       attended = true;
