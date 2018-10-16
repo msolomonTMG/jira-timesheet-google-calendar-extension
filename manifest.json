@@ -5,7 +5,7 @@
    },
    "content_scripts": [ {
       "js": [ "jquery-2.1.1.min.js", "chrome_ext.js" ],
-      "matches": [ "http://*/*is.origo.jira.tempo-plugin*", "https://*/*is.origo.jira.tempo-plugin*"  ]
+      "matches": [ "http://*/*is.origo.jira.tempo-plugin*", "https://*/*is.origo.jira.tempo-plugin*", "http://*/secure/Tempo*", "https://*/secure/Tempo*"  ]
    } ],
    "description": "Log time in JIRA based on your Google calendar.",
    "icons": {
